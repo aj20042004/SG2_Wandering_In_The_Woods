@@ -18,7 +18,7 @@ class InputAutofeed():
 	_loaded_module:ModuleType|None=None
 
 	@staticmethod
-	def patched_input(Prompt=None):
+	def _patched_input(Prompt=None):
 		if InputAutofeed._feed_tape:
 			return InputAutofeed._feed_tape.popleft()
 		raise IndexError("Unexpectedly ran into end of feed tape.")
@@ -32,16 +32,16 @@ class InputAutofeed():
 		:param module_to_patch: module we want to shadow the input function in.
 		:param feed_tape: simulated input to feed when input is requested. 
 		 Input is fed FILO (starts at index 0).
+		:raises IndexError: whenever the module tries to call the input function 
+		more times than feed_tape has simulated inputs
 		"""
 		cls._feed_tape=deque(feed_tape)
-		setattr(module_to_patch,"input",cls.patched_input)
+		setattr(module_to_patch,"input",cls._patched_input)
 		
 	
 	@classmethod 
 	def disable_simulated_input(cls):
-		"""
-		unnecisary but still nice to clean up
-		"""
+		"""unnecisary but still nice to clean up"""
 		if not cls._loaded_module:return
 		delattr(cls._loaded_module,"input")
 		cls._loaded_module=None
