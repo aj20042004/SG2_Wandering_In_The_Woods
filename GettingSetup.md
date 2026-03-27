@@ -81,7 +81,7 @@ You're welcome to use any IDE you like. I personaly use vscode so i've included 
 If you are using VS-Code you may wish to change the interpreter it's using from your default to your virtual enviorments interpreter.
 This allows intellisense to know what packages you have and installed, as well as direct mypy integration
 
-1. press `ctr+shift+p` (open command pallet) <br>
+1. press <kbd>ctr</kbd>+<kbd>shift</kbd>+<kbd>p</kbd> (open command pallet) <br>
 2. type `>Python: Select Interpreter` until it autofills, and select it. <br>
 3. select `Enter Interpreter Path` <br>
 4. type the path to our venv interpreter`./.venv/bin/python`
@@ -90,7 +90,7 @@ This allows intellisense to know what packages you have and installed, as well a
 
 ## Extensions
 If you are using vscode I would highly recommend you use these extensions. \
-To quickly install an extension in vscode press `ctr+p` and paste the commands bellow.
+To quickly install an extension in vscode press <kbd>ctr</kbd>+<kbd>p</kbd> and paste the commands bellow.
 
 **Python (Required)** | Microsoft \
 _Base python extension for vscode_
@@ -127,7 +127,7 @@ Support Restructured Text **☑** \
 _use reST style formatting for docstrings_
 
 Support Docstring Template **☑** \
-_enable pylance to autogenerate docstrings by typing `"""` and hitting `ctr+.`_
+_enable pylance to autogenerate docstrings by typing `"""` and hitting <kbd>ctr</kbd>+<kbd>.</kbd>_
 
 ### Mypy
 Run Using Active Interpreter **☑** \
@@ -135,7 +135,7 @@ _use our venv version of mypy instead of using path to search for a system insta
 
 <br>
 
-If you dont feel like searching for the settings you can hit `ctr+shift+p` and search for \
+If you dont feel like searching for the settings you can hit <kbd>ctr</kbd>+<kbd>shift</kbd>+<kbd>p</kbd>  and search for \
 `>Preferences: Open User Settings (JSON)`. Then paste these lines above the last `}`
 ```
 "python.analysis.supportDocstringTemplate": true,
