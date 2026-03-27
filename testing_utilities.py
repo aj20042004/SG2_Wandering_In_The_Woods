@@ -50,4 +50,3 @@ class InputAutofeed():
 	def __init__(self):
 		raise TypeError(f"{self.__class__.__name__} is not instantiable")
 	
-
