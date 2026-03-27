@@ -59,12 +59,12 @@ import matplotlib.pyplot as plt
 
 
 #************************************************
-#print an array in a single line
-#if you just do print(np array), each element is a new line
-#this is just prettier for testing.
+#Prints an array in a single line
+#If you just do print(np-array), each element is a new line.
+# This is just prettier for testing.
 #Code is taken from Tressa's SG1 and slightly modified
-#Parameters: array is the array being printed
-#            label is an optional prefix for clarity in output
+#Parameters: array -> the array being printed
+#            label -> an optional prefix for clarity in output
 def print_array(array, label=""):
     print(label + (":" if (label != "") else ""))
     for _ in range(0, len(array)):
@@ -75,10 +75,15 @@ def print_array(array, label=""):
 
 
 #*******************************************
+#
+#REMOVE FOR FINAL SUBMISSION
+#
 #Checks to see if a random location on the grid
 #  has the same number of occurrences in meeting_locations
 #  and the heatmap. Also verifies the number of values
 #  in all data structures
+#Basically just checks for an obvious logical error
+#Parameters are all values returned by run_simulations
 def test_bench(N, meeting_locations, simulation_lengths, heatmap):
     buffer = ""
     print("Running tests...\n")
@@ -86,8 +91,7 @@ def test_bench(N, meeting_locations, simulation_lengths, heatmap):
     if (len(meeting_locations) != len(simulation_lengths) and len(meeting_locations) != np.sum(heatmap)):
         buffer += ("VALUE COUNT-- FAILED: ", len(meeting_locations), len(simulation_lengths), np.sum(heatmap))
 
-    for _ in range(0, len(meeting_locations)):
-        loading_screen(_, len(meeting_locations)+1)
+    for _ in range(0, len(meeting_locations)//2):
         test = (np.random.randint(0, N), np.random.randint(0, N))
         count = 0
         for loc in meeting_locations:
@@ -95,6 +99,7 @@ def test_bench(N, meeting_locations, simulation_lengths, heatmap):
                 count += 1
         if (count != (heatmap[test[0]][test[1]])):
             buffer += ("HEATMAP VS LOC COUNT-- FAILED AT: ", test, count, (heatmap[test[0]][test[1]]))
+        loading_screen(_, -1+len(meeting_locations)//2)
 
     if (buffer == ""):
         print("\nAll tests passed!")
@@ -109,6 +114,8 @@ def test_bench(N, meeting_locations, simulation_lengths, heatmap):
 #Called once per simulation inside run_simulations().
 #Calculates percent completion and updates the same console line in-place.
 #Code is originally from Tressa's SG1
+#Parameters: sim -> the current simulation
+#            R ---> the total number of simulations
 def loading_screen(sim, R):
     bar_length = 30
     progress = sim / R
@@ -125,7 +132,12 @@ def loading_screen(sim, R):
 
 #********************************************
 #Runs R simulations & displays a loading screen to show progress
-#Parameters are N (grid size), T (simulation length), and R (simulation count)
+#Returns an array of simulation lengths (in ticks),
+#    an array of tuples representing meeting locations,
+#    and a 2D array representing the heatmap.
+#Parameters:  N -> grid size
+#             T -> ticks per simulation
+#             R -> simulation count
 def run_simulations(N, T, R):
     print("\nRunning simulations...\n")
     heatmap = np.zeros((N, N), dtype=int)
@@ -150,10 +162,10 @@ def run_simulations(N, T, R):
 
 #********************************************
 #Helper function that generates a random direction
-#  in the form of grid coordinates. Works by effectively
+#  in the form of grid coordinates. Effectively works by
 #  flipping two coins, one for positive or negative
-#  movement, and one for x or y movement, then returning
-#  the resulting value.
+#  movement, and one for x or y movement.
+#  Returns a tuple representing a 2D movement vector.
 def get_direction():
     magnitude = 1
     if (np.random.randint(0, 2) == 0):
@@ -170,10 +182,10 @@ def get_direction():
 #********************************************
 #Helper function that checks if a move is valid,
 #  and moves the subject if so.
-#Takes three parameters, being the tuple position
-#  of the subject, the tuple to move it by, and the
-#  upper bound on movement
-#Returns updated position if valid, original if not
+#Parameters: position --> tuple of current position
+#            direction -> tuple of how much to move position by
+#            N ---------> grid size
+#Returns updated position + direction if valid, position if not
 def update_position(position, direction, N):
     if (0 <= position[0] + direction[0] <= N-1) and (0 <= position[1] + direction[1] <= N-1):
         return (position[0] + direction[0], position[1] + direction[1])
@@ -184,7 +196,18 @@ def update_position(position, direction, N):
 
 
 #********************************************
-#DOCUMENTATION NEEDED
+#Runs a single simulation of the two wanderers.
+#   Works by storing the position of each person
+#   in their own variable, then running a loop
+#   that updates each position once per iteration,
+#   breaking at T iterations or if the two positions
+#   are found to be equal
+#Parameters: N -> grid size
+#            T -> max ticks per simulation
+#If simulation ends without a meeting, returns
+#   a tuple null values if unsuccessful
+#If a meeting occurs, returns the current tick and
+#   the location of the meeting
 def single_simulation(N, T):
     person_a = (0,0)
     person_b = (N - 1, N - 1)
