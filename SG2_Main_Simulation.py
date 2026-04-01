@@ -29,7 +29,7 @@
 #       - Jackie Herbstreit
 #       - Tressa Millering
 #       - May Salahaldin
-#       - Jackie Herbstreit
+#       - AJ Soma Ravichandran
 #
 #
 #   Important Dates -
