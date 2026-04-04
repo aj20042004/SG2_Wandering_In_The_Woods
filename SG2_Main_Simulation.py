@@ -4,10 +4,7 @@
 #       Tressa - Primarily programmed using PyCharm for its
 #                version control tools, later tested in Thonny
 #
-
-
-
-#     NOTE FROM TRESSA
+#     Note FROM TRESSA
 #     I'm using Pycharm to program, mostly because Thonny
 #     runs terribly on my machine; I figure if we are all
 #     using a different IDE, we can just list them separately.
@@ -17,9 +14,6 @@
 #     python that comes preinstalled with Thonny. Its probably safest, but
 #     if we need features exclusive to a later version we can look into it
 #
-
-
-
 #   Python Packages REQUIRED - (must be installed with Thonny IDE, "Tools>Manage Packages")
 #       - NumPy
 #       - Matplotlib
@@ -51,6 +45,9 @@
 #
 #*************************************************************************************************
 
+from datetime import datetime
+from pathlib import Path
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -58,7 +55,7 @@ import matplotlib.pyplot as plt
 
 
 
-#************************************************
+# ******************************************************************************************************
 #Prints an array in a single line
 #If you just do print(np-array), each element is a new line.
 # This is just prettier for testing.
@@ -71,10 +68,9 @@ def print_array(array, label=""):
         print(array[_], end=" ")
     print("\n")
 
-#*******************************************
 
 
-#*******************************************
+# ******************************************************************************************************
 #
 #REMOVE FOR FINAL SUBMISSION
 #
@@ -106,10 +102,9 @@ def test_bench(N, meeting_locations, simulation_lengths, heatmap):
     else:
         print(buffer)
 
-#*******************************************
 
 
-#********************************************
+# ******************************************************************************************************
 #Displays a visual progress bar during simulation execution.
 #Called once per simulation inside run_simulations().
 #Calculates percent completion and updates the same console line in-place.
@@ -127,10 +122,8 @@ def loading_screen(sim, R):
 
     print(f"\r{bar}  ---  {percent:.3f}%", end="")
 
-#********************************************
 
-
-#********************************************
+# ******************************************************************************************************
 #Runs R simulations & displays a loading screen to show progress
 #Returns an array of simulation lengths (in ticks),
 #    an array of tuples representing meeting locations,
@@ -157,10 +150,8 @@ def run_simulations(N, T, R):
     meetings_array = np.array(meeting_locations)
     return meetings_array, lengths_array, heatmap
 
-#********************************************
 
-
-#********************************************
+# ******************************************************************************************************
 #Helper function that generates a random direction
 #  in the form of grid coordinates. Effectively works by
 #  flipping two coins, one for positive or negative
@@ -176,10 +167,8 @@ def get_direction():
     else:
         return (magnitude, 0)
 
-#********************************************
 
-
-#********************************************
+# ******************************************************************************************************
 #Helper function that checks if a move is valid,
 #  and moves the subject if so.
 #Parameters: position --> tuple of current position
@@ -192,21 +181,19 @@ def update_position(position, direction, N):
     else:
         return position
 
-#********************************************
 
-
-#********************************************
-#Runs a single simulation of the two wanderers.
+# ******************************************************************************************************
+#   Runs a single simulation of the two wanderers.
 #   Works by storing the position of each person
 #   in their own variable, then running a loop
 #   that updates each position once per iteration,
 #   breaking at T iterations or if the two positions
 #   are found to be equal
-#Parameters: N -> grid size
-#            T -> max ticks per simulation
-#If simulation ends without a meeting, returns
+#   Parameters: N -> grid size
+#               T -> max ticks per simulation
+#   If simulation ends without a meeting, returns
 #   a tuple null values if unsuccessful
-#If a meeting occurs, returns the current tick and
+#   If a meeting occurs, returns the current tick and
 #   the location of the meeting
 def single_simulation(N, T):
     person_a = (0,0)
@@ -218,6 +205,75 @@ def single_simulation(N, T):
             return tick, person_a
 
     return None, None
+
+
+
+
+# ******************************************************************************************************
+# Writes simulation results to a timestamped text file.
+# Expects lengths to contain one entry per simulation.
+# Parameters: N -------------> grid size
+#             T -------------> max ticks per simulation
+#             R -------------> number of simulations
+#             lengths -------> list/array of simulation lengths
+#             heatmap -------> 2D array of meeting counts
+#             meeting_count -> number of successful meetings
+#             group_names ---> list of group member names
+def write_results(N, T, R, lengths, heatmap, meeting_count, group_names):
+    
+    # Convert NumPy array (or iterable) of lengths into a standard Python list of integers
+    lengths_list = [int(length) for length in lengths]
+    
+    # Sort group member names alphabetically for consistent output
+    sorted_names = sorted(group_names)
+
+    # Calculate statistics if data exists
+    if lengths_list:
+        max_length = max(lengths_list)
+        min_length = min(lengths_list)
+        average_length = sum(lengths_list) / R if R != 0 else 0
+    else:
+        # Handle edge case where no simulations succeeded
+        max_length = "N/A"
+        min_length = "N/A"
+        average_length = 0
+    
+    # Initialize histogram array to count frequency of each tick value
+    histogram = [0] * (T + 1)
+    
+    for tick in lengths_list:
+        if 0 <= tick <= T:
+            histogram[tick] += 1
+
+    # Generate timestamp for unique filename
+    timestamp = datetime.now()
+    filename = f"WANDERING_{timestamp:%Y%m%d}_{timestamp:%H%M%S}.txt"
+    
+    # Determine directory where file will be saved
+    script_directory = Path(__file__).resolve().parent if "__file__" in globals() else Path.cwd()
+    output_path = script_directory / filename
+
+    # Open file for writing results
+    with output_path.open("w", encoding="utf-8") as result_file:
+        result_file.write("Group Members: " + ", ".join(sorted_names) + "\n")
+        result_file.write(f"N={N}, T={T}, R={R}\n")
+        result_file.write(f"Max: {max_length} Min: {min_length} Avg: {average_length}\n")
+        result_file.write(f"Meetings: {meeting_count} No meetings: {R - meeting_count}\n")
+        result_file.write("Histogram:\n")
+
+        for tick in range(0, T + 1):
+            if histogram[tick] > 0:
+                result_file.write(f"{tick}: {'*' * histogram[tick]}\n")
+
+        result_file.write("Heatmap:\n")
+        for row in heatmap:
+            result_file.write(" ".join(str(int(value)) for value in row) + "\n")
+
+    print(f"Results written to {output_path}")
+    input("Press ENTER to exit")
+    
+    # Return file path for potential further use
+    return output_path
 
 # ********************************************
 
@@ -235,10 +291,12 @@ def main():
     T = 10000
 
     #run simulations
+    group_names = ["Alex Fahnestock", "Jackie Herbstreit", "Tressa Millering", "May Salahaldin", "AJ Soma Ravichandran"]
     meeting_locations, simulation_lengths, heatmap = run_simulations(N, T, R)
+    write_results(N, T, R, simulation_lengths, heatmap, len(meeting_locations), group_names)
 
     #SIMPLE TESTBENCH
-    test_bench(N, meeting_locations, simulation_lengths, heatmap)
+    #test_bench(N, meeting_locations, simulation_lengths, heatmap)
 
     #output data
     #prompt user to hit enter to continue
