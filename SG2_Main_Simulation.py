@@ -50,9 +50,9 @@ from pathlib import Path
 
 import numpy as np
 import matplotlib.pyplot as plt
+import random 
 
-
-
+from typing import Any,Literal,cast
 
 
 # ******************************************************************************************************
@@ -152,20 +152,20 @@ def run_simulations(N, T, R):
 
 
 # ******************************************************************************************************
-#Helper function that generates a random direction
-#  in the form of grid coordinates. Effectively works by
-#  flipping two coins, one for positive or negative
-#  movement, and one for x or y movement.
-#  Returns a tuple representing a 2D movement vector.
-def get_direction():
-    magnitude = 1
-    if (np.random.randint(0, 2) == 0):
-        magnitude = -1
 
-    if (np.random.randint(0, 2) == 0):
-        return (0, magnitude)
-    else:
-        return (magnitude, 0)
+
+type movement_vector=tuple[Literal[-1,0,1],Literal[-1,0,1]] 
+DIRECTION_TABLE:dict[Literal[0,1,2,3],movement_vector]={0:(0,1) ,1:(0,-1),2:(-1,0),3:(0,1)}
+
+
+def get_direction()-> movement_vector:
+	"""
+	Helper function that generates a random direction in the form of grid coordinates
+
+	:return: a tuple representing a 2D movement vector.
+	"""
+	return DIRECTION_TABLE[random.choice([0,1,2,3])]
+
 
 
 # ******************************************************************************************************
