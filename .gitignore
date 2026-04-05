@@ -1,5 +1,15 @@
+# python environment related
 .venv/
-.vscode/
 __pycache__/
 .mypy_cache/
+
+# IDE folders
+.vscode/
 .idea
+
+# Profiler files
+*.prof
+*.lprof
+
+# output files
+WANDERING_*_*.text
