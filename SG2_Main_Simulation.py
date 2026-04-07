@@ -67,7 +67,7 @@ type movement_vector=tuple[Literal[-1,0,1],Literal[-1,0,1]]
 #**************************** CONSTANTS ********************************************************
 
 
-DIRECTION_TABLE:dict[Literal[0,1,2,3],movement_vector]={0:(0,1) ,1:(0,-1),2:(-1,0),3:(0,1)}
+DIRECTION_TABLE:dict[Literal[0,1,2,3],movement_vector]={0:(0,1) ,1:(0,-1),2:(-1,0),3:(1,0)}
 
 
 
