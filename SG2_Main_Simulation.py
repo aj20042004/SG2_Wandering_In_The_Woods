@@ -61,13 +61,12 @@ from typing import Any,Literal,cast
 
 
 type Coord=tuple[int,int] # type alias for readability
-type movement_vector=tuple[Literal[-1,0,1],Literal[-1,0,1]] 
-
-
+type MovementVector=tuple[Literal[-1,0,1],Literal[-1,0,1]] 
+type Box[T] = list[T]
+type NumpyArray2D[T:np.generic]=np.ndarray[tuple[int, int], np.dtype[T]]
 #**************************** CONSTANTS ********************************************************
 
-
-DIRECTION_TABLE:dict[Literal[0,1,2,3],movement_vector]={0:(0,1) ,1:(0,-1),2:(-1,0),3:(1,0)}
+DIRECTION_TABLE:dict[Literal[0,1,2,3],MovementVector]={0:(0,1) ,1:(0,-1),2:(-1,0),3:(1,0)}
 
 
 
@@ -148,8 +147,7 @@ def loading_screen(sim, R):
 #             T -> ticks per simulation
 #             R -> simulation count
 
-#TODO: TODOC 
-def run_simulations(N, T, R):
+def run_simulations(N:int, T:int, R:int)->tuple[list[Coord],list[int],NumpyArray2D[np.integer]]:
 	"""
 	Runs R simulations & displays a loading screen to show progress
 
@@ -159,21 +157,21 @@ def run_simulations(N, T, R):
 
 	:return: 
 	"""
-	
+
 	print("\nRunning simulations...\n")
 
 	#[afan2211] Since we can't meet a negative amount of times x≥0
 	#           R<100,000 therefore the max # of meetings is 100,000
 	#           0≤x<100,000  0≤uint32<2^32 
-	heatmap = np.zeros((N, N), dtype= np.dtypes.UInt32DType) 
+	heatmap = np.zeros((N, N), dtype= np.uint32) 
 	
-	simulation_lengths = []
-	meeting_locations = []
+	simulation_lengths:list[int] = []
+	meeting_locations:list[Coord] = []
 	for sim in range(0, R):
 		loading_screen(sim + 1, R)  # +1 ensures it reaches 100%
 		ticks, loc = single_simulation(N, T)
 
-		if ticks or loc is None:
+		if ticks is None or loc is None:
 			continue
 
 		simulation_lengths.append(ticks)
@@ -182,10 +180,7 @@ def run_simulations(N, T, R):
 
 	print("\nSimulations complete!\n")
 
-	#[afan2211] @dtmhg6 numpy arrays aren't providing any benifit here. If
-	lengths_array = np.array(simulation_lengths)
-	meetings_array = np.array(meeting_locations)
-	return meetings_array, lengths_array, heatmap
+	return meeting_locations,simulation_lengths, heatmap
 
 
 # ******************************************************************************************************
@@ -195,7 +190,7 @@ def run_simulations(N, T, R):
 
 
 
-def get_direction()-> movement_vector:
+def get_direction()-> MovementVector:
 	"""
 	Helper function that generates a random direction in the form of grid coordinates
 
@@ -263,7 +258,7 @@ def single_simulation(N, T)-> tuple[int,Coord]|tuple[None,None]:
 def write_results(N, T, R, lengths, heatmap, meeting_count, group_names):
 	
 	# Convert NumPy array (or iterable) of lengths into a standard Python list of integers
-	lengths_list = [int(length) for length in lengths]
+	lengths_list = lengths
 	
 	# Sort group member names alphabetically for consistent output
 	sorted_names = sorted(group_names)
@@ -333,6 +328,8 @@ def main():
 
 	#run simulations
 	group_names = ["Alex Fahnestock", "Jackie Herbstreit", "Tressa Millering", "May Salahaldin", "AJ Soma Ravichandran"]
+	
+
 	meeting_locations, simulation_lengths, heatmap = run_simulations(N, T, R)
 	write_results(N, T, R, simulation_lengths, heatmap, len(meeting_locations), group_names)
 
