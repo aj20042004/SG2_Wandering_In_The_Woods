@@ -66,7 +66,7 @@ deactivate
 # Using Mypy
 after activating our venv mypy can be run using the `mypy` command followed by the name of the python file you want to check
 ```sh
-mypy SG2_Program.py
+mypy SG2_Alex.py
 ```
 
 

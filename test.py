@@ -4,13 +4,13 @@
 # summary: automated tests for SG2_Program
 
 import testing_utilities
-import SG2_Program
+import SG2_Alex
 
 
 
 def main():
-	testing_utilities.InputAutofeed.enable_simulated_input(SG2_Program,["a","b"])
-	SG2_Program.main()
+	testing_utilities.InputAutofeed.enable_simulated_input(SG2_Alex, ["a", "b"])
+	SG2_Alex.main()
 	testing_utilities.InputAutofeed.disable_simulated_input()
 
 
