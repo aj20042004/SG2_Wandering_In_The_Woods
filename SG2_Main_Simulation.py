@@ -1,82 +1,77 @@
-#*************************************************************************************************
-#   Language - Python 3.10
-#   IDE -
-#       Tressa - Primarily programmed using PyCharm for its
-#                version control tools, later tested in Thonny
+# ****************************************************************************************************************************************************************
+# Developed using Python 3.10 and tested in Thonny. 
+# 
+# Authors: 
+# Alex Fahnestock, Jackie Herbstreit, Tressa Millering, May Salahaldin, AJ Soma Ravichandran
 #
-#     Note FROM TRESSA
-#     I'm using Pycharm to program, mostly because Thonny
-#     runs terribly on my machine; I figure if we are all
-#     using a different IDE, we can just list them separately.
-#     If it turns out we are all using Pycharm, then nevermind lol
+# Course: CMP SCI 4500
+# Important Dates:
+#    1. Repository Created: 03/11/2026
+#    2. Rough Design Drafted: 03/15/2026
+#    3. Basic Simulation Implemented: 03/24/2026
+#    4. Final Version Submitted: [ADD DATE]
 #
-#     ALSO- I have it listed as Python 3.10 because thats the version of
-#     python that comes preinstalled with Thonny. Its probably safest, but
-#     if we need features exclusive to a later version we can look into it
+# Program Description:
+# This program simulates two strangers moving randomly on an N x N grid to determine
+# if and when they meet. They start at opposite corners and move each time step (T).
+# The simulation runs R times to collect statistical data.
 #
-#   Python Packages REQUIRED - (must be installed with Thonny IDE, "Tools>Manage Packages")
-#       - NumPy
-#       - Matplotlib
+# The program:
+#   - Takes validated inputs for N (grid size), T (time limit), and R (runs)
+#   - Runs R simulations of random movement
+#   - Records ending time, meeting occurrence, and meeting locations
+#   - Displays max, min, and average times, a histogram, and a heat map
+#   - Saves results to a timestamped output file
 #
-#   Authors -
-#       - Alex Fahnestock
-#       - Jackie Herbstreit
-#       - Tressa Millering
-#       - May Salahaldin
-#       - AJ Soma Ravichandran
+# Simulation Logic:
+#   - Each step, both individuals move randomly (up, down, left, right, or stay if blocked)
+#   - If both land on the same cell, they meet and the simulation ends
+#   - Otherwise, the simulation continues until time reaches T
 #
+# Data Structures:
+#   - times_list: Stores the number of steps taken for each simulation.
+#   - meet_count: Tracks how many simulations resulted in a meeting.
+#   - no_meet_count: Tracks how many simulations ended without meeting.
+#   - heat_map: 2D array (N x N) storing counts of meeting locations.
+#   - histogram_data: Stores frequency distribution of ending times.ion
+#  
+# External Resources:
+#   1. numpy.random.randint - Used to determine the direction of a given movement without 
+#                              floating point comparisons (https://numpy.org/doc/stable/reference/random/generated/numpy.random.randint.html)
+#           
+# Python Packages Required - (must be installed with Thonny IDE, "Tools -> Manage Packages")
+#    - NumPy
+#    - Matplotlib
 #
-#   Important Dates -
-#       Repository created 03/11/2026
-#       Rough Design Drafted 03/15/2026
-#       Basic Simulation Implemented 03/24/2026
-#
-#   Course -
-#        CS 4500 - Intro to the Software Profession
-#
-#
-#   Program Explanation -
-#
-#
-#   Outside Sources:
-#
-#       https://numpy.org/doc/stable/reference/random/generated/numpy.random.randint.html
-#           - Used to determine the direction of a given movement without floating point comparisons
-#
-#*************************************************************************************************
+# ****************************************************************************************************************************************************************
 
+# Import necessary libraries
 from datetime import datetime
 from pathlib import Path
+from typing import Any,Literal,cast
 
 import numpy as np
 import matplotlib.pyplot as plt
 import random 
 
-from typing import Any,Literal,cast
-
-
-
-#****************************** TYPE ALIASES ******************************************************
-
-
-
-type Coord=tuple[int,int] # type alias for readability
+# Define type aliases for readability
+type Coord=tuple[int,int]  # type alias for readability
 type MovementVector=tuple[Literal[-1,0,1],Literal[-1,0,1]] 
 type Box[T] = list[T]
 type NumpyArray2D[T:np.generic]=np.ndarray[tuple[int, int], np.dtype[T]]
-#**************************** CONSTANTS ********************************************************
 
+# Define a mapping of random integers to movement vectors (up, down, left, right)
 DIRECTION_TABLE:dict[Literal[0,1,2,3],MovementVector]={0:(0,1) ,1:(0,-1),2:(-1,0),3:(1,0)}
 
 
-
-# ******************************************************************************************************
-#Prints an array in a single line
-#If you just do print(np-array), each element is a new line.
-# This is just prettier for testing.
-#Code is taken from Tressa's SG1 and slightly modified
-#Parameters: array -> the array being printed
-#            label -> an optional prefix for clarity in output
+# ****************************************************************************************************************************************************************
+# Prints an array on a single line (for cleaner output during testing)
+# Instead of printing each element on a new line (default NumPy behavior),
+# this function prints all elements in one row.
+#
+# Parameters:
+#   array -> the array to print
+#   label -> optional label printed before the array
 def print_array(array, label=""):
 	print(label + (":" if (label != "") else ""))
 	for _ in range(0, len(array)):
@@ -85,16 +80,18 @@ def print_array(array, label=""):
 
 
 
-# ******************************************************************************************************
+# ****************************************************************************************************************************************************************
+# TEST BENCH (REMOVE FOR FINAL SUBMISSION)
 #
-#REMOVE FOR FINAL SUBMISSION
+# Verifies basic correctness of simulation outputs by:
+#   - Checking consistency between meeting_locations, simulation_lengths, and heatmap
+#   - Comparing random positions in meeting_locations with heatmap counts
 #
-#Checks to see if a random location on the grid
-#  has the same number of occurrences in meeting_locations
-#  and the heatmap. Also verifies the number of values
-#  in all data structures
-#Basically just checks for an obvious logical error
-#Parameters are all values returned by run_simulations
+# Parameters:
+#   N ----------------> grid size
+#   meeting_locations -> list of meeting coordinates
+#   simulation_lengths -> list of simulation durations
+#   heatmap ----------> 2D array of meeting counts
 def test_bench(N, meeting_locations, simulation_lengths, heatmap):
 	buffer = ""
 	print("Running tests...\n")
@@ -119,13 +116,13 @@ def test_bench(N, meeting_locations, simulation_lengths, heatmap):
 
 
 
-# ******************************************************************************************************
-#Displays a visual progress bar during simulation execution.
-#Called once per simulation inside run_simulations().
-#Calculates percent completion and updates the same console line in-place.
-#Code is originally from Tressa's SG1
-#Parameters: sim -> the current simulation
-#            R ---> the total number of simulations
+# ****************************************************************************************************************************************************************
+# Displays a progress bar while simulations are running.
+# Updates the same console line to show completion percentage.
+#
+# Parameters:
+#   sim -> current simulation number
+#   R   -> total number of simulations
 def loading_screen(sim, R):
 	bar_length = 30
 	progress = sim / R
@@ -138,14 +135,18 @@ def loading_screen(sim, R):
 	print(f"\r{bar}  ---  {percent:.3f}%", end="")
 
 
-# ******************************************************************************************************
-#Runs R simulations & displays a loading screen to show progress
-#Returns an array of simulation lengths (in ticks),
-#    an array of tuples representing meeting locations,
-#    and a 2D array representing the heatmap.
-#Parameters:  N -> grid size
-#             T -> ticks per simulation
-#             R -> simulation count
+# ****************************************************************************************************************************************************************
+# Runs R simulations and tracks results.
+#
+# Returns:
+#   meeting_locations -> list of meeting coordinates
+#   simulation_lengths -> list of ticks until meeting
+#   heatmap ----------> 2D array counting meeting locations
+#
+# Parameters:
+#   N -> grid size
+#   T -> max ticks per simulation
+#   R -> number of simulations
 
 def run_simulations(N:int, T:int, R:int)->tuple[list[Coord],list[int],NumpyArray2D[np.integer]]:
 	"""
@@ -160,9 +161,7 @@ def run_simulations(N:int, T:int, R:int)->tuple[list[Coord],list[int],NumpyArray
 
 	print("\nRunning simulations...\n")
 
-	#[afan2211] Since we can't meet a negative amount of times x≥0
-	#           R<100,000 therefore the max # of meetings is 100,000
-	#           0≤x<100,000  0≤uint32<2^32 
+    # Heatmap stores number of meetings at each grid position
 	heatmap = np.zeros((N, N), dtype= np.uint32) 
 	
 	simulation_lengths:list[int] = []
@@ -183,13 +182,11 @@ def run_simulations(N:int, T:int, R:int)->tuple[list[Coord],list[int],NumpyArray
 	return meeting_locations,simulation_lengths, heatmap
 
 
-# ******************************************************************************************************
-
-
-
-
-
-
+# ****************************************************************************************************************************************************************
+# Generates a random movement direction.
+#
+# Returns:
+#   A tuple representing movement
 def get_direction()-> MovementVector:
 	"""
 	Helper function that generates a random direction in the form of grid coordinates
@@ -200,14 +197,16 @@ def get_direction()-> MovementVector:
 
 
 
-# ******************************************************************************************************
-#Helper function that checks if a move is valid,
-#  and moves the subject if so.
-#Parameters: position --> tuple of current position
-#            direction -> tuple of how much to move position by
-#            N ---------> grid size
-#Returns updated position + direction if valid, position if not    
-
+# ****************************************************************************************************************************************************************
+# Updates position if move stays within grid boundaries.
+#
+# Parameters:
+#   position  -> current 
+#   direction -> movement vector
+#   N --------> grid size
+#
+# Returns:
+#   New position if valid, otherwise original position   
 def update_position(position, direction, N):
 	if (0 <= position[0] + direction[0] <= N-1) and (0 <= position[1] + direction[1] <= N-1):
 		return (position[0] + direction[0], position[1] + direction[1])
@@ -215,22 +214,21 @@ def update_position(position, direction, N):
 		return position
 
 
-# ******************************************************************************************************
-#   Runs a single simulation of the two wanderers.
-#   Works by storing the position of each person
-#   in their own variable, then running a loop
-#   that updates each position once per iteration,
-#   breaking at T iterations or if the two positions
-#   are found to be equal
-#   Parameters: N -> grid size
-#               T -> max ticks per simulation
-#   If simulation ends without a meeting, returns
-#   a tuple null values if unsuccessful
-#   If a meeting occurs, returns the current tick and
-#   the location of the meeting
-
-
-
+# ****************************************************************************************************************************************************************
+# Runs a single simulation of two wanderers.
+#
+# Logic:
+#   - Start at opposite corners
+#   - Move both individuals each tick
+#   - Stop if they meet or time limit is reached
+#
+# Returns:
+#   (tick, location) if meeting occurs
+#   (None, None) if no meeting
+#
+# Parameters:
+#   N -> grid size
+#   T -> max ticks
 def single_simulation(N, T)-> tuple[int,Coord]|tuple[None,None]:
 	person_a:Coord = (0,0)
 	person_b:Coord = (N - 1, N - 1)
@@ -242,10 +240,59 @@ def single_simulation(N, T)-> tuple[int,Coord]|tuple[None,None]:
 
 	return None, None
 
+# ****************************************************************************************************************************************************************
+# Analyzes simulation results and displays statistics + histogram.
+#
+# Parameters:
+#   simulation_lengths -> list of meeting times
+#   R -----------------> total simulations
+def simulation_analysis_and_histogram(simulation_lengths, R):
+    """
+    Performs simulation analysis and displays results + histogram.
+
+    Parameters:
+        simulation_lengths (array/list): lengths of simulations where meetings occurred
+        R (int): total number of simulations
+    """
+
+    # Convert to regular Python list (handles NumPy array)
+    lengths = [int(x) for x in simulation_lengths]
+
+    if len(lengths) == 0:
+        print("\n--- Simulation Analysis ---")
+        print("No meetings occurred in any simulation.")
+        print(f"Total simulations: {R}")
+        print(f"Meetings: 0")
+        print(f"No meetings: {R}")
+        return
+
+    max_time = max(lengths)
+    min_time = min(lengths)
+    avg_time = sum(lengths) / len(lengths)
+
+    meeting_count = len(lengths)
+    no_meeting_count = R - meeting_count
+
+    # --- PRINT RESULTS ---
+    print("\n--- Simulation Analysis ---")
+    print(f"Total simulations: {R}")
+    print(f"Meetings: {meeting_count}")
+    print(f"No meetings: {no_meeting_count}")
+    print(f"Max time: {max_time}")
+    print(f"Min time: {min_time}")
+    print(f"Average time: {avg_time:.2f}")
+
+    # --- HISTOGRAM ---
+    plt.figure()
+    plt.hist(lengths, bins=20)
+    plt.title("Histogram of Simulation Ending Times")
+    plt.xlabel("Time Steps")
+    plt.ylabel("Frequency")
+    plt.grid()
+    plt.show()
 
 
-
-# ******************************************************************************************************
+# ****************************************************************************************************************************************************************
 # Writes simulation results to a timestamped text file.
 # Expects lengths to contain one entry per simulation.
 # Parameters: N -------------> grid size
@@ -311,11 +358,10 @@ def write_results(N, T, R, lengths, heatmap, meeting_count, group_names):
 	# Return file path for potential further use
 	return output_path
 
-# ********************************************
-
-
-# ********************************************
+# ****************************************************************************************************************************************************************
+# Main function: controls program execution
 def main():
+    
 	#program explanation
 	#get N
 	N = 100
@@ -328,20 +374,15 @@ def main():
 
 	#run simulations
 	group_names = ["Alex Fahnestock", "Jackie Herbstreit", "Tressa Millering", "May Salahaldin", "AJ Soma Ravichandran"]
-	
-
 	meeting_locations, simulation_lengths, heatmap = run_simulations(N, T, R)
+	simulation_analysis_and_histogram(simulation_lengths, R)
 	write_results(N, T, R, simulation_lengths, heatmap, len(meeting_locations), group_names)
 
 	#SIMPLE TESTBENCH
 	#test_bench(N, meeting_locations, simulation_lengths, heatmap)
 
-	#output data
-	#prompt user to hit enter to continue
-	#on enter hit, write to text file and exit prog
 
 
-# ********************************************
-
+# ****************************************************************************************************************************************************************
 if __name__ == "__main__":
 	main()
