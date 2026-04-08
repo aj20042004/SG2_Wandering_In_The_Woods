@@ -104,7 +104,17 @@ def loading_screen(sim:int, R:int):
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
-DOCUMENTATION NEEDED
+
+Gets a valid integer input from the user within a given range.
+
+Parameters:
+    prompt (str): message shown to the user
+    min_value (int): minimum allowed value
+    max_value (int): maximum allowed value
+
+Returns:
+    int: valid number entered by the user
+
 """
 def get_valid_input(prompt, min_value, max_value):
     while True:
@@ -126,7 +136,12 @@ def get_valid_input(prompt, min_value, max_value):
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
-DOCUMENTATION NEEDED
+
+Asks the user to enter simulation values (N, T, R).
+
+Returns:
+    tuple: N (grid size), T (time limit), R (number of simulations)
+
 """
 def get_user_inputs():
     print("\nEnter values for the simulation:")
