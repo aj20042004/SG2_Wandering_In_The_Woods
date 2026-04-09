@@ -76,8 +76,9 @@ type NumpyArray2D[T:np.generic]=np.ndarray[tuple[int, int], np.dtype[T]]
 # Define a mapping of random integers to movement vectors (up, down, left, right)
 DIRECTION_TABLE:dict[Literal[0,1,2,3],MovementVector]={0:(0,1) ,1:(0,-1),2:(-1,0),3:(1,0)}
 
+#Data plot styling
+plt.style.use('bmh')
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -295,11 +296,11 @@ def simulation_analysis_and_histogram(simulation_lengths:list[int], R:int):
 
     # --- HISTOGRAM ---
     plt.figure()
-    plt.hist(simulation_lengths, bins=20)
+    plt.hist(simulation_lengths, linewidth="1", edgecolor="black", color="skyblue", bins=35)
     plt.title("Histogram of Simulation Ending Times")
     plt.xlabel("Time Steps")
     plt.ylabel("Frequency")
-    plt.grid()
+    plt.grid(True)
     plt.show()
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
