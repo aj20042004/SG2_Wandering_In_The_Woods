@@ -117,23 +117,26 @@ Returns:
     int: valid number entered by the user
 
 """
-def get_valid_input(prompt, min_value, max_value):
+def get_valid_input(prompt:str, min_value:int, max_value:int)->int:
     while True:
-        user_input = input(prompt)
+        try:
+            user_input = input(prompt)
         
-        if not user_input.isdigit():
-            print("Error: please enter a number.")
-            continue
+            if '.' in user_input:
+                print("Error: Floating point input. Please enter a whole number.")
+                continue
         
-        value = int(user_input)
+            value = int(user_input)
         
        
-        if value < min_value:
-            print(f"Error: value is too small. Minimum is {min_value}.")
-        elif value > max_value:
-            print(f"Error: value is too large. Maximum is {max_value}.")
-        else:
-            return value
+            if value < min_value:
+                print(f"Error: value is too small. Minimum is {min_value}.")
+            elif value > max_value:
+                print(f"Error: value is too large. Maximum is {max_value}.")
+            else:
+                return value
+        except ValueError:
+            print("Error: Non-numeric input. Please enter a whole number.")
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
