@@ -150,7 +150,7 @@ Returns:
     tuple: N (grid size), T (time limit), R (number of simulations)
 
 """
-def get_user_inputs():
+def get_user_inputs()->tuple[int, int, int]:
     print("--------------------------------------------------------")
     print("            Enter values for the simulation:            ")
     print("--------------------------------------------------------")
