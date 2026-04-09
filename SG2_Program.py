@@ -147,7 +147,9 @@ Returns:
 
 """
 def get_user_inputs():
-    print("\nEnter values for the simulation:")
+    print("--------------------------------------------------------")
+    print("            Enter values for the simulation:            ")
+    print("--------------------------------------------------------")
     
     N = get_valid_input("Enter grid size N (2-100): ", 2, 100)
     T = get_valid_input("Enter time limit T (2-1000000): ", 2, 1000000)
@@ -265,7 +267,8 @@ Analyzes simulation results and displays statistics + histogram.
 """
 def simulation_analysis_and_histogram(simulation_lengths:list[int], R:int):
     if len(simulation_lengths) == 0:
-        print("\n--- Simulation Analysis ---")
+        print("\n    Simulation Analysis    ")
+        print("-" * 30)
         print("No meetings occurred in any simulation.")
         print(f"Total simulations: {R}")
         print(f"Meetings: 0")
@@ -280,12 +283,14 @@ def simulation_analysis_and_histogram(simulation_lengths:list[int], R:int):
     no_meeting_count = R - meeting_count
 
     # --- PRINT RESULTS ---
-    print("\n--- Simulation Analysis ---")
+    print("--------------------------------------------------------")
+    print("                 Simulation Analysis                    ")
+    print("--------------------------------------------------------")
     print(f"Total simulations: {R}")
     print(f"Meetings: {meeting_count}")
     print(f"No meetings: {no_meeting_count}")
-    print(f"Max time: {max_time}")
-    print(f"Min time: {min_time}")
+    print(f"Maximum time: {max_time}")
+    print(f"Minimum time: {min_time}")
     print(f"Average time: {avg_time:.2f}")
 
     # --- HISTOGRAM ---
@@ -338,31 +343,42 @@ def write_results(N:int, T:int, R:int, lengths:list[int], heatmap, meeting_count
         if 0 <= tick <= T:
             histogram[tick] += 1
 
-    # Generate timestamp for unique filename
-    timestamp = datetime.now()
-    filename = f"WANDERING_{timestamp:%Y%m%d}_{timestamp:%H%M%S}.txt"
-
     # Determine directory where file will be saved
     script_directory = Path(__file__).resolve().parent if "__file__" in globals() else Path.cwd()
+    existing_files = sorted(
+        script_directory.glob("WANDERING_*.txt"),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True
+    )
+    timestamp = datetime.now()
+    filename = f"WANDERING_{timestamp:%d_%m_%Y}_{timestamp:%H_%M}.txt"
     output_path = script_directory / filename
+
+    if existing_files:
+        latest_file = existing_files[0]
+        if latest_file != output_path:
+            latest_file.unlink()
 
     # Open file for writing results
     with output_path.open("w", encoding="utf-8") as result_file:
-        result_file.write("Group Members: " + ", ".join(sorted_names) + "\n")
-        result_file.write(f"N={N}, T={T}, R={R}\n")
-        result_file.write(f"Max: {max_length} Min: {min_length} Avg: {average_length}\n")
-        result_file.write(f"Meetings: {meeting_count} No meetings: {R - meeting_count}\n")
-        result_file.write("Histogram:\n")
-
+        result_file.write("         SG2 Project: Wandering in the Woods Simulation Results          \n")
+        result_file.write("-------------------------------------------------------------------------\n")
+        result_file.write("\nGroup Members: " + ", ".join(sorted_names) + "\n")
+        result_file.write(f"\nN={N}, T={T}, R={R}\n")
+        result_file.write(f"\nMaximum Time: {max_length}, Minimum Time: {min_length}, Average Time: {average_length}\n")
+        result_file.write(f"\nMeetings: {meeting_count}, No meetings: {R - meeting_count}\n")
+        result_file.write("\nHistogram:\n")
+        result_file.write("---------------------------------------------------------------------------------------\n")
         for tick in range(0, T + 1):
             if histogram[tick] > 0:
                 result_file.write(f"{tick}: {'*' * histogram[tick]}\n")
 
-        result_file.write("Heatmap:\n")
+        result_file.write("\nHeatmap:\n")
+        result_file.write("---------------------------------------------------------------------------------------\n")
         for row in heatmap:
             result_file.write(" ".join(str(int(value)) for value in row) + "\n")
 
-    print(f"Results written to {output_path}")
+    print(f"\nResults written to {output_path}")
     input("Press ENTER to exit")
 
     # Return file path for potential further use
@@ -376,13 +392,59 @@ def write_results(N:int, T:int, R:int, lengths:list[int], heatmap, meeting_count
 def main():
     
     #program explanation
+    print("\n")
+    print("-" * 100)
+    print("SG2: Wandering in the Woods Simulator")
+    print("-" * 100)
+    
+    print(
+"""This program simulates two strangers wandering randomly in a square grid,
+to study how long it takes for them to meet.
 
+The simulation takes place on an N x N grid. One person starts in the top-left
+corner, and the other starts in the bottom-right corner.
+
+Time progresses in steps (ticks). At each time step:
+1. Each person randomly chooses to move up, down, left, or right.
+2. If a move would take them off the grid, they stay in place.
+3. After both have moved, the program checks if they are in the same square.
+
+If both people land on the same square at the same time, they meet and the
+simulation ends. If they do not meet, the simulation continues until the
+maximum time limit (T) is reached.
+
+This experiment is repeated R times to gather meaningful statistics.
+
+The program will calculate and display:
+1. The maximum time taken for a simulation to end
+2. The minimum time taken for a simulation to end
+3. The average time taken across all simulations
+4. A histogram showing how often simulations ended at each time step
+5. A heatmap showing where meetings occurred on the grid
+
+You will now be asked to enter:
+1. N - the size of the grid (between 2 and 100)
+2. T - the maximum number of time steps (between 2 and 1,000,000)
+3. R - the number of simulations to run (between 1 and 100,000)
+
+After all simulations are complete, the results will be displayed,
+and a detailed report will be saved to a text file.
+"""
+)
+
+    # get user inputs
     N, T, R = get_user_inputs()
 
-    #run simulations
+    # define group member names for output file
     group_names = ["Alex Fahnestock", "Jackie Herbstreit", "Tressa Millering", "May Salahaldin", "AJ Soma Ravichandran"]
+    
+    # run simulations and collect data
     meeting_locations, simulation_lengths, heatmap = run_simulations(N, T, R)
+    
+    # analyze results and display statistics + histogram
     simulation_analysis_and_histogram(simulation_lengths, R)
+    
+    # WWrite results to output file
     write_results(N, T, R, simulation_lengths, heatmap, len(meeting_locations), group_names)
 
 
