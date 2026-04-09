@@ -126,7 +126,7 @@ def get_valid_input(prompt, min_value, max_value):
         
         value = int(user_input)
         
-        # check range
+       
         if value < min_value:
             print(f"Error: value is too small. Minimum is {min_value}.")
         elif value > max_value:
