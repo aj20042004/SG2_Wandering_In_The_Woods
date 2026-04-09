@@ -10,8 +10,10 @@ def get_valid_input(prompt, min_value, max_value):
         value = int(user_input)
         
         # check range
-        if value < min_value or value > max_value:
-            print(f"Error: must be between {min_value} and {max_value}.")
+        if value < min_value:
+            print(f"Error: value is too small. Minimum is {min_value}.")
+        elif value > max_value:
+            print(f"Error: value is too large. Maximum is {max_value}.")
         else:
             return value
 
