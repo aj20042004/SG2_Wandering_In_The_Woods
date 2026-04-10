@@ -15,15 +15,14 @@
 # Project: General utility 
 # summary: self explanitory 
 
-from typing import Iterable,Type,Any,TypedDict
+from typing import Iterable,Type,Any,TypedDict,Optional,Literal
 from collections import deque
 from types import ModuleType
 from collections.abc import Iterator,Callable
 import inspect
 from sys import modules,_getframe
 from dataclasses import dataclass
-
-
+import builtins
 
 
 
@@ -51,12 +50,97 @@ class PatchEntry():
 
 
 
+#========== PUBLIC INTERFACE =====================================================
+
+class Patch():
+	
+
+	
+
+	def __init__(self,scope: ModuleType|Callable,apply_to:str,patch: Callable)->None:
+		self._scope=scope
+		self._apply_to=apply_to
+		self._patch_func=patch
+		self._callback:Optional[Callable[[],None]]=None
+
+	def __enter__(self)->None:
+		self._callback=patch_module(self._scope,self._apply_to,self._patch_func)
+		return None
+	
+	def __exit__(self, exc_type, exc, tb)-> Literal[False]:
+		if self._callback:self._callback()
+		return False
 
 
-# (NOT IMPLEMENTED) apply_to uses proper module names not aliases 
+
+class SimulatedInput():
+	
+
+	def __init__(self,scope: ModuleType|Callable,feed_tape:Iterator[str]|Iterable[str]):
+		self._scope=scope
+		self._feed_tape=feed_tape
+		self._callback:Optional[Callable[[],None]]=None
+
+	def __enter__(self)->None:
+		self._callback=_simulate_input(self._scope,self._feed_tape)
+		return None
+	
+	def __exit__(self, exc_type, exc, tb)-> Literal[False]:
+		if self._callback:self._callback()
+		return False
+
+
+
+
+def simulate_input(scope,feed_tape:Iterator[str]|Iterable[str]):
+	print("\033[33m" + "Warning: this function is depreciated. use SimulatedInput context manager instead" + "\033[0m")
+	return _simulate_input(scope,feed_tape)
+
+
+
+#========================================================================
+
+# new private internal version 
+def _simulate_input(scope,feed_tape:Iterator[str]|Iterable[str])->Callable[[],None]:
+	_feed_tape=iter(feed_tape)
+	def _patched_input(Prompt=None):
+		return next(_feed_tape)
+	return monkey_patch_func(scope,"input",_patched_input)
+
+
+
+
+
+def storage():
+	toplevel_name=original_func.__name__
+	is_builtin=not hasattr(scope,toplevel_name) and hasattr(builtins,toplevel_name)
+
+
+def wrap_patch(scope:ModuleType|Callable,patch: Callable,original_func:Callable)->Callable:
+
+	#check to ensure that original_func is a function
+
+
+	if not inspect.isfunction(scope) : return patch
+
+	caller_name=scope.__name__
+	def _context_switch(*args, **kwargs):
+		if(_getframe(1).f_code.co_name ==caller_name):
+			return patch(*args,**kwargs)
+		else:
+			return original_func(*args,**kwargs)
+		
+	return _context_switch
+
+
 def patch_module(scope:ModuleType|Callable,apply_to:str,patch:Callable)->Callable[[],None]:
 	
 	
+	#divert to monkey patch when patching a function without any attribute lookup
+	if len(apply_to.split("."))<=1:
+		return monkey_patch_func(scope,apply_to,patch)
+
+
 	#wallrus operator allows for assignment without getting in way of condition
 	if not(scope_module := inspect.getmodule(scope)):
 		raise TypeError("Scope must be a module or function")
@@ -91,14 +175,10 @@ def patch_module(scope:ModuleType|Callable,apply_to:str,patch:Callable)->Callabl
 	#the patch function in a wrapper that inspects the call stack and 
 	#dispatches to the correct function for that context
 
-	target_caller_name=scope.__name__
-	def _context_switch(*args, **kwargs):
-		if(target_caller_name==_getframe(1).f_code.co_name):
-			return patch(*args,**kwargs)
-		else:
-			return original_func(*args,**kwargs)
 
-	wrapped_patch:Callable=_context_switch if inspect.isfunction(scope) else patch
+	wrapped_patch:Callable=wrap_patch(scope,patch,original_func)
+
+
 
 
 
@@ -126,34 +206,30 @@ def patch_module(scope:ModuleType|Callable,apply_to:str,patch:Callable)->Callabl
 
 
 
-
-
-
-def simulate_input(scope,feed_tape:Iterator[str]|Iterable[str])->Callable[[],None]:
-	_feed_tape=iter(feed_tape)
-	def _patched_input(Prompt=None):
-		return next(_feed_tape)
-	return monkey_patch_func(scope,"input",_patched_input)
-
-
 #provides some limited additional safety 
-#TODO: add ability to limit scope to function
-#TODO: add functionality to limit scope to classes
-def monkey_patch_func(scope_to_patch:ModuleType|Callable,apply_to:str,patch_function:Callable)->Callable[[],None]:
-	
+def monkey_patch_func(scope:ModuleType|Callable,apply_to:str,patch_function:Callable)->Callable[[],None]:
+	patch=patch_function
+
+
+	if not(scope_module := inspect.getmodule(scope)):
+		raise TypeError("Scope must be a module or function")
 
 	
 	#check if we are shadowing an existing function
 	try:
-		old_function=getattr(scope_to_patch,apply_to)
+		old_function=getattr(scope_module,apply_to)
+		patch=wrap_patch(scope_module,patch_function,old_function)
 		def revert_patch():
-			delattr(scope_to_patch,apply_to)
-			setattr(scope_to_patch,apply_to,old_function)
-				
+			delattr(scope_module,apply_to)
+			setattr(scope_module,apply_to,old_function)
+			
+
 	except AttributeError:
 		def revert_patch():
-			delattr(scope_to_patch,apply_to)
+			delattr(scope_module,apply_to)
 
-	setattr(scope_to_patch,apply_to,patch_function)
+
+
+	setattr(scope_module,apply_to,patch)
 
 	return revert_patch
