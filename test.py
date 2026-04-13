@@ -5,6 +5,7 @@
 
 import testing_utilities
 from testing_utilities import TestResult,unit_test,box,SimulatedInput,Patch,TestModule
+from testing_utilities import assertEqual,assertNotEqual,assertRaises
 import SG2_Program
 
 import matplotlib as mp
@@ -33,7 +34,6 @@ import sys
 
 
 #======================= Patches ======================================
-output_buffer=""
 class dummy_file():
 	def __enter__(self):
 		return self
@@ -42,9 +42,13 @@ class dummy_file():
 		pass
 
 	def write(self,s: ReadableBuffer,/) -> int:
-		global output_buffer
-		output_buffer+=str(s)
+		
+		self.output_buffer.val+=str(s) #type:ignore
 		return 0
+	
+	def __init__(self,output_buffer:box[str]):
+		""":param box[str] output_buffer: location to store the written data instead of writing to a file"""
+		self.output_buffer=output_buffer
 
 
 def dummy_open(*args,**kwargs): 
@@ -138,9 +142,9 @@ class unit_test_input_validation(TestModule):
 		"""exhaustively test all valid inputs"""
 		
 		# boxes to store copies of generated inputs
-		N_buffer:box[str]=box()
-		T_buffer:box[str]=box()
-		R_buffer:box[str]=box()
+		N_buffer:box=box[str]()
+		T_buffer:box=box[str]()
+		R_buffer:box=box[str]()
 
 		test_tape =  gen_test_tape(N_buffer,T_buffer,R_buffer)
 		simulated_input =  SimulatedInput(SG2_Program,test_tape)
@@ -148,9 +152,9 @@ class unit_test_input_validation(TestModule):
 
 		with simulated_input,suppress_print:
 			output =  SG2_Program.get_user_inputs()
-			expected =  (int(N_buffer.val),int(T_buffer.val),int(R_buffer.val)) #type:ignore
+			expected =  (int(N_buffer.val),int(T_buffer.val),int(R_buffer.val)) 
 
-			assert (output==expected),f"{output} != {expected}"
+			assertEqual(output,expected)
 
 			R_buffer.val=T_buffer.val=N_buffer.val=None # rest buffers 
 
@@ -164,6 +168,8 @@ class unit_test_input_validation(TestModule):
 	@unit_test(test_name="Numbers out of valid range")
 	def ut_out_of_range_inputs()->None:
 		pass
+	
+
 
 
 def main():

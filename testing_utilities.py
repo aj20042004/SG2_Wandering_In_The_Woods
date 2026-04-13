@@ -50,8 +50,22 @@ def _copy_module_to_class(source:ModuleType,dest:Type):
 
 #============== UTILITY ===========================
 class box[T]():
-	"""generic storage location"""
-	val:T|None=None
+	"""generic storage location. None corresponds to a uninitialized state"""
+
+	def __init__(self,init_val:T|None=None):
+		self._val:T|None=None
+		
+	@property
+	def val(self)->T:
+		if not self._val: raise AttributeError("var is marked as uninitialized (None)")
+		return self._val
+	
+	@val.setter
+	def val(self,value:T|None)->None:
+		self._val=value
+		
+
+	
 	
 
 
@@ -139,13 +153,24 @@ class TestModule():
 			try:
 				test()
 				results.append(TestResult(test._unit_test,test))
-			except Exception as e:
+			except UnitTestAssertionException as e:
 				results.append(TestResult(test._unit_test,test,e))
 		return results
+
+
+
+
+
+
 
 #we need a decorator anyways for a staticmethod so we may as well mark them
 def unit_test(test_name:str)->Callable:
 	def _inner(func:Callable[[],None])->staticmethod:
+		
+		#TODO: implement more sophisticated checks like if is in a TestModule specificly 
+		if not "." in func.__qualname__:
+			raise SyntaxError("unit_test decorator used outside of class")
+
 		ret=staticmethod(func)
 		setattr(ret,"_unit_test",test_name) #set marker
 		return ret
@@ -193,6 +218,65 @@ def run_unit_tests(tests:list[TestModule]):
 
 
 
+
+#========================= ASSERTATIONS ==============================
+
+
+class UnitTestAssertionException(Exception):
+    """Exception used when a unit test fails or something IDK"""
+    pass
+
+
+def assertEqual(a,b):
+	if a != b:
+		try:
+			raise 
+		except:
+			e= UnitTestAssertionException(f"assertion {a} == {b} is False")
+			raise e from None
+		finally:
+			 e.__traceback__ = e.__traceback__.tb_next
+		
+
+def assertNotEqual(a,b):
+	if a==b:
+		
+		try:
+			raise 
+		except:
+			e=UnitTestAssertionException(f"assertion {a} != {b} is False") 
+			raise e from None
+		finally:
+			 e.__traceback__ = e.__traceback__.tb_next
+			
+
+class assertRaises():
+	"""Raise a UnitTestAssertionException if we dont raise an exception. Use as a context manager"""
+
+	def __enter__(self):
+		return self
+	
+	def __exit__(self, exc_type, exc, tb):
+		if exc is None:
+			try:
+				raise 
+			except:
+				e= UnitTestAssertionException(f"assertion raises {self.exc_types}is False") 
+				raise e from None
+			finally:
+				e.__traceback__ = tb
+		elif self.exc_types and exc_type in self.exc_types:
+			return True
+		elif not self.exc_types and exc is not None:
+			return True
+		
+
+
+
+
+	def __init__(self,filter_exceptions:list[Type[Exception]]|None=None):
+		""":param filter_exception: filter down from all exceptions to just this specific type of exception"""
+		self.exc_types=filter_exceptions
 
 
 #========================================================================
