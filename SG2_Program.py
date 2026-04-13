@@ -60,6 +60,7 @@
 from datetime import datetime
 from pathlib import Path
 from typing import Any,Literal,cast
+from matplotlib.ticker import MultipleLocator
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -327,7 +328,7 @@ Expects lengths to contain one entry per simulation.
 def write_results(N:int, T:int, R:int, lengths:list[int], heatmap, meeting_count:int, group_names:list[str])->Path:
 
 	# Sort group member names alphabetically for consistent output
-	sorted_names = sorted(group_names)
+	sorted_names = sorted(group_names, key=lambda name: name.split()[-1])
 
 	# Calculate statistics if data exists
 	if lengths:
@@ -367,7 +368,11 @@ def write_results(N:int, T:int, R:int, lengths:list[int], heatmap, meeting_count
 	with output_path.open("w", encoding="utf-8") as result_file:
 		result_file.write("         SG2 Project: Wandering in the Woods Simulation Results          \n")
 		result_file.write("-------------------------------------------------------------------------\n")
-		result_file.write("\nGroup Members: " + ", ".join(sorted_names) + "\n")
+  
+		result_file.write("\nGroup Members:\n")
+		for name in sorted_names:
+			result_file.write(f"- {name}\n")
+
 		result_file.write(f"\nN={N}, T={T}, R={R}\n")
 		result_file.write(f"\nMaximum Time: {max_length}, Minimum Time: {min_length}, Average Time: {average_length}\n")
 		result_file.write(f"\nMeetings: {meeting_count}, No meetings: {R - meeting_count}\n")
@@ -389,8 +394,6 @@ def write_results(N:int, T:int, R:int, lengths:list[int], heatmap, meeting_count
 	return output_path
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-from matplotlib.ticker import MultipleLocator
-
 
 def display_heatmap(heatmap:NumpyArray2D):
 
