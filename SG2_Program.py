@@ -2,7 +2,7 @@
 ╔═════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ SG2                                                                      					  ║
 ╠━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╣
-║ Language: Python 3.10                                                						  ║
+║ Language: Python 3.13.12                                               					  ║
 ║ IDE: Thonny, VSCode, Pycharm                                      						  ║
 ║ Class: CS 4500 - Intro to the Software Profession                 						  ║
 ║ Program: SG2 - Wandering in the Woods                             						  ║
@@ -42,24 +42,29 @@
 ║   - 03/11/2026 (Repository created)														  ║
 ║	- 03/15/2026 (Rough Design Drafted)														  ║
 ║	- 03/24/2026 (Basic Simulation Implemented)   											  ║
-║																						  	  ║
-║    - INSERT DATE (Final Version Submitted)												  ║
+║	- 04/04/2026 (File Output and Statistics Implemented)           					  	  ║
+║   - 04/14/2026 (Final Version Submitted)												      ║
 ║                                                    						                  ║
 ╟─────────────────────────────────────────────────────────────────────────────────────────────╢
 ║ Packages Used        																		  ║
 ║	- Numpy																					  ║
 ║	- Matplotlib                                  							          		  ║
+║	- Datetime																				  ║
+║	- Pathlib																				  ║
+║	- Typing																				  ║
+║	- Random																				  ║
 ║                                  							          						  ║
 ╠━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╣
 ║ Outside Sources																			  ║
-║																							  ║
+║   1. matplotlib - Used for charts and histograms.   						                  ║
+║   2. ChatGPT - Minor syntax fixes.                                                          ║          																	  
 ╚═════════════════════════════════════════════════════════════════════════════════════════════╝
 """
 
 # Import necessary libraries
 from datetime import datetime
 from pathlib import Path
-from typing import Any,Literal,cast
+from typing import Literal
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -87,6 +92,7 @@ def loading_screen(sim:int, R:int):
 	"""
 	Displays a progress bar while simulations are running. 
 	Updates the same console line to show completion percentage.
+	Code is from Tressa's SG1.
 
 	:param int sim: current simulation number
 	:param int R: total number of simulations
@@ -143,7 +149,6 @@ def get_valid_input(prompt:str, min_value:int, max_value:int)->int:
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
-
 Asks the user to enter simulation values (N, T, R).
 
 Returns:
@@ -332,7 +337,7 @@ def write_results(N:int, T:int, R:int, lengths:list[int], heatmap, meeting_count
 	
 
 	# Sort group member names alphabetically for consistent output
-	sorted_names = sorted(group_names)
+	sorted_names = sorted(group_names, key=lambda name: name.split()[-1])
 
 	# Calculate statistics if data exists
 	if lengths:
@@ -372,7 +377,11 @@ def write_results(N:int, T:int, R:int, lengths:list[int], heatmap, meeting_count
 	with output_path.open("w", encoding="utf-8") as result_file:
 		result_file.write("         SG2 Project: Wandering in the Woods Simulation Results          \n")
 		result_file.write("-------------------------------------------------------------------------\n")
-		result_file.write("\nGroup Members: " + ", ".join(sorted_names) + "\n")
+  
+		result_file.write("\nGroup Members:\n")
+		for name in sorted_names:
+			result_file.write(f"- {name}\n")
+
 		result_file.write(f"\nN={N}, T={T}, R={R}\n")
 		result_file.write(f"\nMaximum Time: {max_length}, Minimum Time: {min_length}, Average Time: {average_length}\n")
 		result_file.write(f"\nMeetings: {meeting_count}, No meetings: {R - meeting_count}\n")
@@ -393,7 +402,7 @@ def write_results(N:int, T:int, R:int, lengths:list[int], heatmap, meeting_count
 	# Return file path for potential further use
 	return output_path
 
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━W
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 def display_heatmap(heatmap:NumpyArray2D):
 	"""
