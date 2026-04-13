@@ -82,14 +82,15 @@ plt.style.use('bmh')
 
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-"""
-Displays a progress bar while simulations are running. 
-Updates the same console line to show completion percentage.
 
-	:param sim | (int): current simulation number
-	:param R   | (int): total number of simulations
-"""
 def loading_screen(sim:int, R:int):
+	"""
+	Displays a progress bar while simulations are running. 
+	Updates the same console line to show completion percentage.
+
+	:param int sim: current simulation number
+	:param int R: total number of simulations
+	"""
 	bar_length:int = 30
 	progress:float = sim / R
 	filled:int = int(progress * bar_length)
@@ -104,20 +105,19 @@ def loading_screen(sim:int, R:int):
 
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-"""
 
-Gets a valid integer input from the user within a given range.
-
-Parameters:
-	prompt (str): message shown to the user
-	min_value (int): minimum allowed value
-	max_value (int): maximum allowed value
-
-Returns:
-	int: valid number entered by the user
-
-"""
 def get_valid_input(prompt:str, min_value:int, max_value:int)->int:
+	"""
+	Gets a valid integer input from the user within a given range.
+
+	:param str prompt: message shown to the user
+	:param int min_value: minimum allowed value
+	:param int max_value: maximum allowed value
+
+	
+	:return	int: valid number entered by the user
+
+	"""
 	while True:
 		try:
 			user_input = input(prompt)
@@ -156,8 +156,8 @@ def get_user_inputs()->tuple[int, int, int]:
 	print("--------------------------------------------------------")
 	
 	N = get_valid_input("Enter grid size N (2-100): ", 2, 100)
-	T = get_valid_input("Enter time limit T (2-1000000): ", 2, 1000000)
-	R = get_valid_input("Enter number of simulations R (1-100000): ", 1, 100000)
+	T = get_valid_input("Enter time limit T (2-1000000): ", 2, 1_000_000)
+	R = get_valid_input("Enter number of simulations R (1-100000): ", 1, 100_000)
 	
 	return N, T, R
 
@@ -165,18 +165,22 @@ def get_user_inputs()->tuple[int, int, int]:
 
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-"""
-Runs R simulations & displays a loading screen to show progress
 
-	:param N  | (int): grid size
-	:param T  | (int): number of ticks to run before we timeout
-	:param R  | (int): simulation count
-
-	:return: tuple[list[Coord]: list of meeting coordinates,
-				   list[int]: list of simulation lenghts,
-				   NumpyArray2d[np.uint32]: 2D array representing heatmap]                
-"""
 def run_simulations(N:int, T:int, R:int)->tuple[list[Coord],list[int],NumpyArray2D[np.integer]]:
+	"""
+	Runs R simulations & displays a loading screen to show progress
+
+	:param int N: grid size
+	:param int T: number of ticks to run before we timeout
+	:param int R: simulation count
+
+	:return: a tuple containing:
+		- *list[Coord]* a list of meeting coordinates
+		- *list[int]*  a list of simulation lengths
+		- *NumpyArray2D[integer[Any]]* a 2D array representing a heatmap
+	:rtype: tuple[list[Coord], list[int], NumpyArray2D[integer[Any]]]
+	"""
+
 	print("\nRunning simulations...\n")
 
 	# Heatmap stores number of meetings at each grid position
@@ -325,6 +329,7 @@ Expects lengths to contain one entry per simulation.
 	:return: path to output file
 """
 def write_results(N:int, T:int, R:int, lengths:list[int], heatmap, meeting_count:int, group_names:list[str])->Path:
+	
 
 	# Sort group member names alphabetically for consistent output
 	sorted_names = sorted(group_names)
@@ -388,12 +393,17 @@ def write_results(N:int, T:int, R:int, lengths:list[int], heatmap, meeting_count
 	# Return file path for potential further use
 	return output_path
 
-#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-from matplotlib.ticker import MultipleLocator
-
+#━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━W
 
 def display_heatmap(heatmap:NumpyArray2D):
+	"""
+	Displays a heatmap  
 
+	:param heatmap: 2D array representing a heatmap where [x][y] indices 
+					correspond to 2d coordinates (x,y) and the value to 
+					the number of occurrences 
+	:type heatmap: NumpyArray2D
+	"""
 	fig=plt.figure()
 	ax=fig.gca()
 	ax.set_title("Meeting Points")
