@@ -153,7 +153,7 @@ class TestModule():
 			try:
 				test()
 				results.append(TestResult(test._unit_test,test))
-			except UnitTestAssertionException as e:
+			except UnitTestAssertionError as e:
 				results.append(TestResult(test._unit_test,test,e))
 		return results
 
@@ -222,7 +222,7 @@ def run_unit_tests(tests:list[TestModule]):
 #========================= ASSERTATIONS ==============================
 
 
-class UnitTestAssertionException(Exception):
+class UnitTestAssertionError(Exception):
     """Exception used when a unit test fails or something IDK"""
     pass
 
@@ -232,7 +232,7 @@ def assertEqual(a,b):
 		try:
 			raise 
 		except:
-			e= UnitTestAssertionException(f"assertion {a} == {b} is False")
+			e= UnitTestAssertionError(f"assertion {a} == {b} is False")
 			raise e from None
 		finally:
 			 e.__traceback__ = e.__traceback__.tb_next
@@ -244,7 +244,7 @@ def assertNotEqual(a,b):
 		try:
 			raise 
 		except:
-			e=UnitTestAssertionException(f"assertion {a} != {b} is False") 
+			e=UnitTestAssertionError(f"assertion {a} != {b} is False") 
 			raise e from None
 		finally:
 			 e.__traceback__ = e.__traceback__.tb_next
@@ -261,7 +261,7 @@ class assertRaises():
 			try:
 				raise 
 			except:
-				e= UnitTestAssertionException(f"assertion raises {self.exc_types}is False") 
+				e= UnitTestAssertionError(f"assertion raises {self.exc_types}is False") 
 				raise e from None
 			finally:
 				e.__traceback__ = tb
@@ -270,14 +270,43 @@ class assertRaises():
 		elif not self.exc_types and exc is not None:
 			return True
 		
-
-
-
-
 	def __init__(self,filter_exceptions:list[Type[Exception]]|None=None):
 		""":param filter_exception: filter down from all exceptions to just this specific type of exception"""
 		self.exc_types=filter_exceptions
 
+
+
+class assertNotRaises():
+	"""Raise a UnitTestAssertionException if we raise an exception. Use as a context manager"""
+
+	def __enter__(self):
+		return self
+	
+	def __exit__(self, exc_type, exc, tb):
+		if exc is None:
+			return True
+		
+		elif self.exc_types and exc_type in self.exc_types:
+				try:
+					raise 
+				except:
+					e= UnitTestAssertionError(f"assertion raises {self.exc_types}is False") 
+					raise e from None
+				finally:
+					e.__traceback__ = tb
+		elif not self.exc_types and exc is not None:
+				try:
+					raise 
+				except:
+					e= UnitTestAssertionError(f"assertion raises {self.exc_types}is False") 
+					raise e from None
+				finally:
+					e.__traceback__ = tb
+				
+		
+	def __init__(self,filter_exceptions:list[Type[Exception]]|None=None):
+		""":param filter_exception: filter down from all exceptions to just this specific type of exception"""
+		self.exc_types=filter_exceptions
 
 #========================================================================
 

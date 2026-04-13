@@ -3,9 +3,9 @@
 # Project: CS 4500 small group project 2 
 # summary: automated tests for SG2_Program
 
-import testing_utilities
+import testing_utilities 
 from testing_utilities import TestResult,unit_test,box,SimulatedInput,Patch,TestModule
-from testing_utilities import assertEqual,assertNotEqual,assertRaises
+from testing_utilities import assertEqual,assertNotEqual,assertRaises,assertNotRaises
 import SG2_Program
 
 import matplotlib as mp
@@ -16,7 +16,6 @@ def over(*args):
 
 import matplotlib.pyplot as plot
 
-import importlib.util
 from types import ModuleType
 from typing import Callable,List,Type,NoReturn,Generator,Optional,Any
 import inspect
@@ -162,13 +161,18 @@ class unit_test_input_validation(TestModule):
 
 	@unit_test(test_name="Different categories of invalid input")
 	def ut_categories_invalid_input()->None:
-		pass
+		...
 
 
 	@unit_test(test_name="Numbers out of valid range")
 	def ut_out_of_range_inputs()->None:
 		pass
 	
+
+
+class unit_test_write_results(TestModule):
+	...
+
 
 
 
