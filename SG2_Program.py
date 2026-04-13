@@ -2,7 +2,7 @@
 ╔═════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ SG2                                                                      					  ║
 ╠━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╣
-║ Language: Python 3.10                                                						  ║
+║ Language: Python 3.13.12                                               					  ║
 ║ IDE: Thonny, VSCode, Pycharm                                      						  ║
 ║ Class: CS 4500 - Intro to the Software Profession                 						  ║
 ║ Program: SG2 - Wandering in the Woods                             						  ║
@@ -42,13 +42,17 @@
 ║   - 03/11/2026 (Repository created)														  ║
 ║	- 03/15/2026 (Rough Design Drafted)														  ║
 ║	- 03/24/2026 (Basic Simulation Implemented)   											  ║
-║																						  	  ║
-║    - INSERT DATE (Final Version Submitted)												  ║
+║	- 04/04/2026 (File Output and Statistics Implemented)           					  	  ║
+║   - 04/14/2026 (Final Version Submitted)												      ║
 ║                                                    						                  ║
 ╟─────────────────────────────────────────────────────────────────────────────────────────────╢
 ║ Packages Used        																		  ║
 ║	- Numpy																					  ║
 ║	- Matplotlib                                  							          		  ║
+║	- Datetime																				  ║
+║	- Pathlib																				  ║
+║	- Typing																				  ║
+║	- Random																				  ║
 ║                                  							          						  ║
 ╠━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╣
 ║ Outside Sources																			  ║
@@ -59,7 +63,7 @@
 # Import necessary libraries
 from datetime import datetime
 from pathlib import Path
-from typing import Any,Literal,cast
+from typing import Literal
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -85,6 +89,7 @@ plt.style.use('bmh')
 """
 Displays a progress bar while simulations are running. 
 Updates the same console line to show completion percentage.
+Code is from Tressa's SG1.
 
 	:param sim | (int): current simulation number
 	:param R   | (int): total number of simulations
@@ -143,7 +148,6 @@ def get_valid_input(prompt:str, min_value:int, max_value:int)->int:
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
-
 Asks the user to enter simulation values (N, T, R).
 
 Returns:
