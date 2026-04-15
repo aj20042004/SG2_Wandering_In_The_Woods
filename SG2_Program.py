@@ -53,12 +53,23 @@
 ║	- Pathlib																				  ║
 ║	- Typing																				  ║
 ║	- Random																				  ║
+║	- Math																					  ║
 ║                                  							          						  ║
 ╠━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╣
 ║ Outside Sources																			  ║
-║   1. matplotlib - Used for charts and histograms.   						                  ║
-║   2. ChatGPT - Minor syntax fixes.                                                          ║          																	  
+║   1. matplotlib - Used for charts and histograms.							                  ║
+║   2. ChatGPT - Minor syntax fixes.                                                          ║
+║   3. all the sources that didnt fit (see below)											  ║
 ╚═════════════════════════════════════════════════════════════════════════════════════════════╝
+
+[Idea for using imshow as a heatmap](https://matplotlib.org/stable/gallery/images_contours_and_fields/image_annotated_heatmap.html)
+[reST style docstring format documentation](https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html)
+[Good blog post on variables and assignment in Python](https://nedbatchelder.com/text/names)
+[Built In Types Documentation](https://docs.python.org/3/library/stdtypes.html)
+[Python Typing Documentation](https://docs.python.org/3/library/typing.html)
+[PEP 484 Type Hints](https://peps.python.org/pep-0484)
+[collections.abc Documentation](https://docs.python.org/3/library/collections.abc.html)
+[PEP 257 Docstring Conventions](https://peps.python.org/pep-0257/)
 """
 
 # Import necessary libraries
@@ -68,12 +79,13 @@ from typing import Literal
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as tick
 import random 
-
+import math
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Define type aliases for readability
-type Coord=tuple[int,int]  # type alias for readability
+type Coord=tuple[int,int] 
 type MovementVector=tuple[Literal[-1,0,1],Literal[-1,0,1]] 
 type Box[T] = list[T]
 type NumpyArray2D[T:np.generic]=np.ndarray[tuple[int, int], np.dtype[T]]
@@ -313,7 +325,7 @@ def simulation_analysis_and_histogram(simulation_lengths:list[int], R:int):
 	plt.xlabel("Time Steps")
 	plt.ylabel("Frequency")
 	plt.grid(True)
-	plt.show()
+	plt.show(block=False)
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -404,6 +416,7 @@ def write_results(N:int, T:int, R:int, lengths:list[int], heatmap, meeting_count
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+
 def display_heatmap(heatmap:NumpyArray2D):
 	"""
 	Displays a heatmap  
@@ -413,25 +426,40 @@ def display_heatmap(heatmap:NumpyArray2D):
 					the number of occurrences 
 	:type heatmap: NumpyArray2D
 	"""
-	fig=plt.figure()
-	ax=fig.gca()
-	ax.set_title("Meeting Points")
 	
 	row,col=heatmap.shape
+
+	fig,ax=plt.subplots()
+
+	max_val=np.max(heatmap)+1
+	val_bounds = np.arange(0,max_val)
+	cmap = plt.get_cmap('viridis', max_val)
+
 	#[afan2211] using imshow over hist2d as it is easier to cusomize while
 	#			having comparable performance in this context according to 
 	# 			my profiling 
-	im = ax.imshow(heatmap.transpose(),origin='lower') # imshow assumes [y,x] coordinates s()
+	im = ax.imshow(heatmap.transpose(),origin='lower',cmap=cmap) # imshow assumes [y,x] coordinates s()
 	
-	ax.set_xticks(np.arange(-0.5, row-.05, 1), minor=True)
-	ax.set_yticks(np.arange(-0.5, col-.05, 1), minor=True)
+	#[afan2211] map our graph size into buckets for dynamically adjusting display parameters
+	buckets=[1,1,1,2,2,3,3,4,5]
+	step= buckets[-1] if row == 100 else buckets[int(row // (100/9))]
+
+	ax.xaxis.set_minor_locator(tick.IndexLocator(step,0.0))
+	ax.xaxis.set_major_locator(tick.IndexLocator(step,-.5))
+	ax.yaxis.set_minor_locator(tick.IndexLocator(step,0.0))
+	ax.yaxis.set_major_locator(tick.IndexLocator(step,-.5))
+
+	dynamic_linewidth= 7.9*math.exp(-.72*step)+.4 
 	
 	ax.grid(which="major",visible=False)
-	ax.grid(which='minor', color='w',alpha=0.5, linestyle='-', linewidth=1)
-	
-	plt.colorbar(im)
+	ax.grid(visible=True,which='minor', color='w',alpha=.90, linestyle='-', linewidth=dynamic_linewidth)
+
+	ax.set_title("Heatmap Of Meeting Points")
+
+	cbar=plt.colorbar(im,ticks=val_bounds)
 	
 	plt.show()
+
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Main function: controls program execution
