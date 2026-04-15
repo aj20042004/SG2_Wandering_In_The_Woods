@@ -405,7 +405,7 @@ def write_results(N:int, T:int, R:int, lengths:list[int], heatmap, meeting_count
 
 		result_file.write("\nHeatmap:\n")
 		result_file.write("---------------------------------------------------------------------------------------\n")
-		for row in heatmap:
+		for row in reversed(heatmap):
 			result_file.write(" ".join(str(int(value)) for value in row) + "\n")
 
 	print(f"\nResults written to {output_path}")
